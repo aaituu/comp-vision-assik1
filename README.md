@@ -1,31 +1,34 @@
 # Action Recognition from Photos
 
-This course project classifies a single photo as `sitting`, `standing`, or
-`waving`. The dataset contains 120 images per class collected from Wikimedia
-Commons. Kaggle is not used. Every image has source and license information in
-`data/manifest.csv`.
+Authors: Ayana Markhabat and Balgyn Yermakhanbet  
+Group: SE-2404
 
-## Project files
+This computer vision project classifies a single image as `sitting`, `standing`,
+or `waving`. The dataset was collected from Wikimedia Commons and does not use
+Kaggle. It contains 360 images, with 120 images in each class.
 
-- `data/raw/` - downloaded images arranged by class
-- `data/manifest.csv` - source URL, author, license, dimensions, and checksum
-- `notebooks/action_recognition.ipynb` - complete experiment notebook
-- `src/train_models.py` - reproducible training and evaluation pipeline
-- `results/` - metrics, plots, predictions, and saved transfer model
-- `output/pdf/action_recognition_report.pdf` - final five-page report
-- `dataset_action_recognition.zip` - submission-ready dataset archive
+The project compares two models:
 
-## Quick start
+- HOG features with Logistic Regression as the baseline;
+- ImageNet-pretrained MobileNetV3-Small as the transfer-learning model.
 
-Clone the repository and enter the project folder:
+The saved test accuracy is 38.9% for the baseline and 77.8% for
+MobileNetV3-Small.
+
+## Start here
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/aaituu/comp-vision-assik1.git
 cd comp-vision-assik1
 ```
 
-Python 3.12 is recommended. Create a virtual environment and install the
-packages:
+### 2. Create a Python environment
+
+Python 3.12 is recommended.
+
+macOS or Linux:
 
 ```bash
 python3 -m venv .venv
@@ -34,53 +37,123 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-On Windows, activate the environment with `.venv\Scripts\activate`.
+Windows:
 
-The dataset and saved results are already included. To reproduce training:
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### 3. Train and evaluate the models
+
+The dataset is already included, so this is the main command needed to reproduce
+the experiment:
 
 ```bash
 python src/train_models.py --data-dir data --output-dir results --epochs 8 --seed 42
 ```
 
-The first run downloads the official ImageNet weights for MobileNetV3-Small.
-New metrics, plots, predictions, and the best checkpoint are saved in `results/`.
+The command trains both models and writes the following files to `results/`:
 
-Open the completed notebook with:
+- `metrics.json` - accuracy, precision, recall, F1-score, and confusion matrices;
+- `test_predictions.csv` - prediction for every test image;
+- `mobilenet_v3_small_best.pt` - best transfer-learning checkpoint;
+- `confusion_baseline.png` and `confusion_transfer.png`;
+- `training_history.png`, `class_distribution.png`, and `dataset_examples.png`;
+- `data_splits.csv` - fixed train, validation, and test split.
+
+The first training run downloads the official MobileNetV3-Small ImageNet
+weights. Internet access is required only for that download.
+
+### 4. Open the completed notebook
 
 ```bash
 jupyter notebook notebooks/action_recognition.ipynb
 ```
 
-Rebuild the five-page PDF report from the saved metrics and figures with:
+The notebook is already executed and contains dataset analysis, preprocessing,
+model descriptions, metrics, confusion matrices, error analysis, and the full
+source code.
+
+### 5. Build the report again
 
 ```bash
 python scripts/build_report.py
 ```
 
-The report is written to `output/pdf/action_recognition_report.pdf`.
+The generated APA-style article is saved at:
+
+```text
+output/pdf/action_recognition_report.pdf
+```
+
+The report contains no page header, footer, or page number.
+
+## Project structure
+
+```text
+comp-vision-assik1/
+├── data/
+│   ├── raw/
+│   │   ├── sitting/              # 120 images
+│   │   ├── standing/             # 120 images
+│   │   └── waving/               # 120 images
+│   ├── manifest.csv              # sources, authors, licenses, checksums
+│   └── dataset_summary.json      # dataset counts and collection settings
+├── notebooks/
+│   └── action_recognition.ipynb  # completed experiment notebook
+├── src/
+│   └── train_models.py           # training and evaluation pipeline
+├── scripts/
+│   ├── collect_dataset.py        # Wikimedia Commons data collector
+│   ├── build_notebook.py         # notebook generator
+│   └── build_report.py           # APA-style PDF report generator
+├── results/                      # metrics, plots, predictions, saved model
+├── output/pdf/
+│   └── action_recognition_report.pdf
+├── DATASET_CARD.md               # dataset description and limitations
+├── requirements.txt              # Python dependencies
+├── dataset_action_recognition.zip
+└── submission_action_recognition.zip
+```
 
 ## Optional: collect the dataset again
 
-The repository already contains all 360 images. Run this only if the dataset
-must be downloaded again from Wikimedia Commons:
+The repository already contains the full dataset. Run the collector only when a
+new download is required:
 
 ```bash
 python scripts/collect_dataset.py --output data --per-class 120 --seed 42
 ```
 
-The collector requires internet access and the `curl` command. It updates the
-images, `data/manifest.csv`, and `data/dataset_summary.json`.
+This command needs internet access and `curl`. It updates the images,
+`data/manifest.csv`, and `data/dataset_summary.json`.
 
-## Models and outputs
+## Rebuild and execute the notebook
 
-The baseline uses HOG features and Logistic Regression. The improved model uses
-ImageNet-pretrained MobileNetV3-Small with a new three-class output layer. Both
-models use the same fixed test set. Saved metrics are in `results/metrics.json`,
-and individual predictions are in `results/test_predictions.csv`.
+```bash
+python scripts/build_notebook.py
+jupyter nbconvert --to notebook --execute notebooks/action_recognition.ipynb --inplace
+```
 
-## Data use note
+## MobileNet weight download troubleshooting
 
-Images come from Wikimedia Commons and have different free licenses or public
-domain status. Attribution details are preserved in `data/manifest.csv`. Check
-the individual source page before using an image outside this educational
-project.
+If Python reports an SSL certificate error while downloading the pretrained
+weights on macOS, download the same official file with `curl`:
+
+```bash
+mkdir -p ~/.cache/torch/hub/checkpoints
+curl -L https://download.pytorch.org/models/mobilenet_v3_small-047dcff4.pth \
+  -o ~/.cache/torch/hub/checkpoints/mobilenet_v3_small-047dcff4.pth
+```
+
+Then run the training command again.
+
+## Data and licensing
+
+The images come from Wikimedia Commons and have different free licenses or
+public-domain status. `data/manifest.csv` contains the source page, image URL,
+author or credit, license, original dimensions, and SHA-256 checksum for every
+image. The original Wikimedia Commons page is the authoritative license record.

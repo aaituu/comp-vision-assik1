@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create the final five-page project report as a plain A4 PDF."""
+"""Create the final five-page article-style project report as an A4 PDF."""
 
 from __future__ import annotations
 
@@ -42,6 +42,16 @@ def styles():
         ),
         "subtitle": ParagraphStyle(
             "Subtitle",
+            parent=base["Normal"],
+            fontName="Helvetica",
+            fontSize=11,
+            leading=14,
+            alignment=TA_CENTER,
+            textColor=colors.black,
+            spaceAfter=4,
+        ),
+        "group": ParagraphStyle(
+            "GroupLine",
             parent=base["Normal"],
             fontName="Helvetica",
             fontSize=10,
@@ -89,6 +99,17 @@ def styles():
             textColor=colors.black,
             spaceAfter=4,
         ),
+        "reference": ParagraphStyle(
+            "APAReference",
+            parent=base["BodyText"],
+            fontName="Helvetica",
+            fontSize=8,
+            leading=10,
+            leftIndent=12,
+            firstLineIndent=-12,
+            textColor=colors.black,
+            spaceAfter=5,
+        ),
         "caption": ParagraphStyle(
             "CaptionPlain",
             parent=base["BodyText"],
@@ -129,18 +150,6 @@ def simple_table(data, widths, font_size=8.5):
     return table
 
 
-def add_page_number(canvas, document):
-    canvas.saveState()
-    canvas.setStrokeColor(colors.HexColor("#888888"))
-    canvas.setLineWidth(0.4)
-    canvas.line(20 * mm, 15 * mm, 190 * mm, 15 * mm)
-    canvas.setFont("Helvetica", 8)
-    canvas.setFillColor(colors.black)
-    canvas.drawString(20 * mm, 10 * mm, "Action Recognition from Photos")
-    canvas.drawRightString(190 * mm, 10 * mm, f"Page {document.page}")
-    canvas.restoreState()
-
-
 def build() -> Path:
     metrics = json.loads((RESULTS / "metrics.json").read_text(encoding="utf-8"))
     baseline = metrics["baseline"]
@@ -153,22 +162,23 @@ def build() -> Path:
         rightMargin=20 * mm,
         leftMargin=20 * mm,
         topMargin=18 * mm,
-        bottomMargin=20 * mm,
+        bottomMargin=18 * mm,
         title="Action Recognition from Photos",
-        author="Computer Vision Course Project",
+        author="Ayana Markhabat and Balgyn Yermakhanbet",
     )
     story = []
 
     # Page 1
     story.append(paragraph("Action Recognition from Photos", s["title"]))
-    story.append(paragraph("Sitting, Standing, and Waving", s["subtitle"]))
+    story.append(paragraph("Ayana Markhabat and Balgyn Yermakhanbet", s["subtitle"]))
+    story.append(paragraph("Group SE-2404", s["group"]))
     story.append(paragraph("Abstract", s["h1"]))
     story.append(
         paragraph(
             "This project studies action recognition from one photo. The task is to classify "
-            "an image as sitting, standing, or waving. I collected a new dataset from "
+            "an image as sitting, standing, or waving. We collected a new dataset from "
             "Wikimedia Commons instead of using Kaggle or another ready-made dataset. The "
-            "final dataset has 360 images, with 120 images in each class. I compared a simple "
+            "final dataset has 360 images, with 120 images in each class. We compared a simple "
             "baseline based on HOG features and Logistic Regression with a transfer-learning "
             "model based on MobileNetV3-Small. On the fixed test set, the baseline reached "
             f"{baseline['accuracy'] * 100:.1f}% accuracy and the transfer model reached "
@@ -177,7 +187,14 @@ def build() -> Path:
             s["body"],
         )
     )
-    story.append(paragraph("1. Introduction", s["h1"]))
+    story.append(
+        paragraph(
+            "<b>Keywords:</b> action recognition, image classification, transfer learning, "
+            "MobileNetV3, HOG",
+            s["body"],
+        )
+    )
+    story.append(paragraph("Introduction", s["h1"]))
     story.append(
         paragraph(
             "Recognizing human actions is useful in photo organization, accessibility tools, "
@@ -215,10 +232,11 @@ def build() -> Path:
     story.append(PageBreak())
 
     # Page 2
-    story.append(paragraph("2. Dataset Collection", s["h1"]))
+    story.append(paragraph("Dataset and Data Collection", s["h1"]))
     story.append(
         paragraph(
-            "I collected the images from Wikimedia Commons with the official MediaWiki API. "
+            "We collected the images from Wikimedia Commons with the official MediaWiki API "
+            "(Wikimedia Commons contributors, n.d.). "
             "The source categories were People sitting, People standing, Female people waving "
             "hands, and Male people waving hands. This means the dataset was collected for this "
             "project and was not downloaded as a prepared machine-learning dataset. A fixed seed "
@@ -244,11 +262,11 @@ def build() -> Path:
     story.append(PageBreak())
 
     # Page 3
-    story.append(paragraph("3. Preprocessing and Models", s["h1"]))
-    story.append(paragraph("3.1 Data split and augmentation", s["h2"]))
+    story.append(paragraph("Preprocessing and Model Development", s["h1"]))
+    story.append(paragraph("Data Split and Augmentation", s["h2"]))
     story.append(
         paragraph(
-            "I used a stratified 70/15/15 split with random seed 42. Each split contains the "
+            "We used a stratified 70/15/15 split with random seed 42. Each split contains the "
             "same number of examples from every class: 84 per class for training, 18 for "
             "validation, and 18 for testing. The test images were kept separate until the final "
             "evaluation.",
@@ -266,20 +284,23 @@ def build() -> Path:
             s["body"],
         )
     )
-    story.append(paragraph("3.2 Baseline model", s["h2"]))
+    story.append(paragraph("Baseline Model", s["h2"]))
     story.append(
         paragraph(
-            "The baseline uses Histograms of Oriented Gradients (HOG). HOG describes local edge "
+            "The baseline uses Histograms of Oriented Gradients (HOG), a descriptor introduced "
+            "for human detection by Dalal and Triggs (2005). HOG describes local edge "
             "directions and is useful for human shape. The HOG vectors were standardized and "
             "given to Logistic Regression. This model is fast and gives a clear reference point, "
             "but it cannot learn high-level visual features from the data.",
             s["body"],
         )
     )
-    story.append(paragraph("3.3 Transfer-learning model", s["h2"]))
+    story.append(paragraph("Transfer-Learning Model", s["h2"]))
     story.append(
         paragraph(
-            "The improved model is MobileNetV3-Small with ImageNet pretrained weights. I froze "
+            "The improved model is MobileNetV3-Small, an efficient CNN architecture developed by "
+            "Howard et al. (2019), with ImageNet pretrained weights from torchvision (PyTorch, "
+            "n.d.). We froze "
             "the convolutional feature extractor and replaced the last layer with a three-class "
             "linear layer. The classifier was trained for 8 epochs with AdamW, learning rate "
             "0.001, weight decay 0.0001, batch size 16, and cross-entropy loss. The checkpoint "
@@ -299,7 +320,7 @@ def build() -> Path:
     story.append(PageBreak())
 
     # Page 4
-    story.append(paragraph("4. Evaluation Results", s["h1"]))
+    story.append(paragraph("Results", s["h1"]))
     story.append(
         paragraph(
             "The improved model performed much better on every main metric. Its accuracy was "
@@ -369,7 +390,7 @@ def build() -> Path:
     story.append(PageBreak())
 
     # Page 5
-    story.append(paragraph("5. Discussion", s["h1"]))
+    story.append(paragraph("Discussion", s["h1"]))
     story.append(
         paragraph(
             "The baseline was only slightly above the 33.3% random level. Its confusion matrix "
@@ -390,7 +411,7 @@ def build() -> Path:
             s["body"],
         )
     )
-    story.append(paragraph("5.1 Limitations and possible improvements", s["h2"]))
+    story.append(paragraph("Limitations and Future Work", s["h2"]))
     story.append(
         paragraph(
             "The dataset was collected from public internet categories, so the labels were not "
@@ -411,7 +432,7 @@ def build() -> Path:
             s["body"],
         )
     )
-    story.append(paragraph("6. Conclusion", s["h1"]))
+    story.append(paragraph("Conclusion", s["h1"]))
     story.append(
         paragraph(
             "This project completed the required data collection, preprocessing, augmentation, model "
@@ -424,15 +445,23 @@ def build() -> Path:
     )
     story.append(paragraph("References", s["h2"]))
     references = [
-        "[1] Wikimedia Commons, MediaWiki API and Imageinfo documentation, https://www.mediawiki.org/wiki/API:Imageinfo",
-        "[2] N. Dalal and B. Triggs, Histograms of Oriented Gradients for Human Detection, CVPR, 2005, https://doi.org/10.1109/CVPR.2005.177",
-        "[3] A. Howard et al., Searching for MobileNetV3, ICCV, 2019, https://arxiv.org/abs/1905.02244",
-        "[4] PyTorch, torchvision MobileNetV3-Small documentation, https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.mobilenet_v3_small.html",
+        "Dalal, N., &amp; Triggs, B. (2005). Histograms of oriented gradients for human detection. "
+        "In <i>2005 IEEE Computer Society Conference on Computer Vision and Pattern Recognition</i> "
+        "(Vol. 1, pp. 886-893). IEEE. https://doi.org/10.1109/CVPR.2005.177",
+        "Howard, A., Sandler, M., Chu, G., Chen, L.-C., Chen, B., Tan, M., Wang, W., Zhu, Y., "
+        "Pang, R., Vasudevan, V., Le, Q. V., &amp; Adam, H. (2019). Searching for MobileNetV3. "
+        "In <i>Proceedings of the IEEE/CVF International Conference on Computer Vision</i> "
+        "(pp. 1314-1324). https://doi.org/10.1109/ICCV.2019.00140",
+        "PyTorch. (n.d.). <i>mobilenet_v3_small</i>. Torchvision documentation. Retrieved October "
+        "3, 2026, from https://docs.pytorch.org/vision/stable/models/generated/"
+        "torchvision.models.mobilenet_v3_small.html",
+        "Wikimedia Commons contributors. (n.d.). <i>Wikimedia Commons</i>. Retrieved October 3, "
+        "2026, from https://commons.wikimedia.org/",
     ]
     for item in references:
-        story.append(paragraph(item, s["small"]))
+        story.append(paragraph(item, s["reference"]))
 
-    document.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    document.build(story)
     return OUTPUT
 
 
