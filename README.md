@@ -51,6 +51,14 @@ Open the completed notebook with:
 jupyter notebook notebooks/action_recognition.ipynb
 ```
 
+Rebuild the five-page PDF report from the saved metrics and figures with:
+
+```bash
+python scripts/build_report.py
+```
+
+The report is written to `output/pdf/action_recognition_report.pdf`.
+
 ## Optional: collect the dataset again
 
 The repository already contains all 360 images. Run this only if the dataset
