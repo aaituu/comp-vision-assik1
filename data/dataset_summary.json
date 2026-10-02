@@ -1,0 +1,11 @@
+{
+  "source": "Wikimedia Commons",
+  "collection_method": "MediaWiki API category members",
+  "seed": 42,
+  "classes": {
+    "sitting": 120,
+    "standing": 120,
+    "waving": 120
+  },
+  "total_images": 360
+}
